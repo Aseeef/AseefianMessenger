@@ -1,0 +1,8 @@
+name: CommunicateAnywhere
+version: '${version}'
+main: dev.aseef.communicateanywhere.spigot.CASpigot
+prefix: CommAnywhere
+load: STARTUP
+authors: [ '${author}' ]
+description: Execute commands on other servers or proxies or use as a inter-server communications API.
+website: aseef.dev
