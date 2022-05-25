@@ -130,6 +130,22 @@ public class MessageObject {
         this.compressed = compressed;
     }
 
+    public Class<?> getDataType() {
+        return this.dataType;
+    }
+
+    public long getMessageId() {
+        return messageId;
+    }
+
+    public byte[] getMessageData() {
+        return messageData;
+    }
+
+    public boolean isCompressed() {
+        return compressed;
+    }
+
     protected static MessageObject receivedDataFromBson (BsonDocument document) throws ClassNotFoundException {
         long messageId = document.getInt64("message-id").longValue();
         Class<?> dataType = Class.forName(document.getString("data-type").getValue());
@@ -138,6 +154,7 @@ public class MessageObject {
         return new MessageObject(messageId, dataType, messageData, compressed);
     }
 
+    // since json is not binary safe, we use bson to transmit data in key value pairs
     protected BsonDocument toBson() {
         return new BsonDocument()
                 .append("message-id", new BsonInt64(this.messageId))
@@ -147,7 +164,7 @@ public class MessageObject {
     }
 
     @SneakyThrows
-    private Object getData() {
+    public Object getData() {
         if (dataType == Byte.class) {
             return ByteBuffer.wrap(this.messageData).get();
         }
@@ -254,39 +271,51 @@ public class MessageObject {
     public static MessageObject from(byte msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(short msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(int msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(long msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(float msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(double msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(boolean msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(File msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(String msg) {
         return new MessageObject(msg);
     }
+
     public static MessageObject from(CommunicableObject communicableObject) {
         return new MessageObject(communicableObject);
     }
+
     public static MessageObject from(BsonDocument jo) {
         return new MessageObject(jo);
     }
+
     public static MessageObject from(BsonArray ja) {
         return new MessageObject(ja);
     }
+
     public static MessageObject from(byte[] bytes) {
         return new MessageObject(bytes);
     }

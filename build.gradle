@@ -30,7 +30,32 @@ dependencies {
     compileOnly ('com.velocitypowered:velocity-api:3.0.1')
     compileOnly ('net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT')
 
-    implementation ('org.objenesis:objenesis:3.2')
+    implementation ('org.apache.logging.log4j:log4j-core:2.17.2') {
+        because 'Provides access to the most popular Java logging framework: Log4J'
+    }
+    implementation ('org.objenesis:objenesis:3.2') {
+        because 'Objenesis allows us to create \'empty\' instances of classes [useful for serialization purposes]'
+    }
+    implementation ('com.zaxxer:HikariCP:4.0.3') {
+        because 'HikariCP is one of the best SQL pool managers out there.'
+    }
+    implementation ('redis.clients:jedis:4.2.3') {
+        because 'Jedis provides an API for Redis interactions'
+    }
+    implementation ('mysql:mysql-connector-java:8.0.29') {
+        because 'Java\'s MySQL connector provides the drivers for MySQL/MariaDB databases'
+    }
+    implementation ('org.postgresql:postgresql:42.3.5') {
+        because 'Provides access to the PostgreSQL drivers'
+    }
+    implementation ('org.mongodb:mongodb-driver-sync:4.6.0') {
+        because 'Provides access to the MongoDB drivers'
+    }
+    implementation ('com.h2database:h2:2.1.212') {
+        because 'Provides access to the H2 drivers'
+    }
+
+    // so others can access BSON since its part of the API
     api ('org.mongodb:bson:4.6.0')
 }
 
