@@ -1,3 +1,4 @@
 {
-  "main":"dev.aseef.communicateanywhere.velocity.CAVelocity"
+  "main":"dev.aseef.communicateanywhere.minecraft.velocity.CAVelocity",
+  "authors": ["${author}"]
 }

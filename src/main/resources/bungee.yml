@@ -1,6 +1,6 @@
 name: CommunicateAnywhere
 version: '${version}'
-main: dev.aseef.communicateanywhere.spigot.CASpigot
+main: dev.aseef.communicateanywhere.minecraft.spigot.CASpigot
 prefix: CommAnywhere
 load: STARTUP
 authors: [ '${author}' ]

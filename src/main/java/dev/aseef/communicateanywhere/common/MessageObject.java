@@ -1,6 +1,7 @@
 package dev.aseef.communicateanywhere.common;
 
 import dev.aseef.communicateanywhere.api.CommunicableObject;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bson.*;
 import org.json.simple.JSONArray;
@@ -23,8 +24,20 @@ public class MessageObject {
     private byte[] messageData;
     private boolean compressed = false;
 
+    /**
+     * Whether this message object is a reply to
+     * another message
+     */
+    @Getter
+    protected boolean reply;
+    @Getter
+    /**
+     * The id of the message that this message is a reply to
+     */
+    protected long replyTo = -1;
+
     @SneakyThrows
-    private MessageObject(Object msg) {
+    protected MessageObject(Object msg) {
         this.dataType = msg.getClass();
         this.messageId = System.nanoTime();
 
@@ -108,10 +121,11 @@ public class MessageObject {
     }
 
     @SneakyThrows
-    private MessageObject(byte[] msg) {
+    protected MessageObject(byte[] msg) {
         this.dataType = msg.getClass();
         this.messageId = System.nanoTime();
         this.messageData = msg;
+
         if (messageData.length > COMPRESSION_THRESHOLD * 1000000) {
             InputStream stream = new GZIPInputStream(new ByteArrayInputStream(messageData));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -123,11 +137,13 @@ public class MessageObject {
         }
     }
 
-    protected MessageObject(long messageId, Class<?> dataType, byte[] messageData, boolean compressed) {
+    public MessageObject(long messageId, Class<?> dataType, byte[] messageData, boolean compressed, boolean reply, long replyTo) {
         this.messageId = messageId;
         this.dataType = dataType;
         this.messageData = messageData;
         this.compressed = compressed;
+        this.reply = reply;
+        this.replyTo = replyTo;
     }
 
     public Class<?> getDataType() {
@@ -146,21 +162,25 @@ public class MessageObject {
         return compressed;
     }
 
-    protected static MessageObject receivedDataFromBson (BsonDocument document) throws ClassNotFoundException {
-        long messageId = document.getInt64("message-id").longValue();
-        Class<?> dataType = Class.forName(document.getString("data-type").getValue());
-        boolean compressed = document.getBoolean("compressed").getValue();
-        byte[] messageData = document.getBinary("data").getData();
-        return new MessageObject(messageId, dataType, messageData, compressed);
-    }
-
     // since json is not binary safe, we use bson to transmit data in key value pairs
-    protected BsonDocument toBson() {
+    public BsonDocument toBson() {
         return new BsonDocument()
                 .append("message-id", new BsonInt64(this.messageId))
                 .append("data-type", new BsonString(this.dataType.getName()))
                 .append("compressed", new BsonBoolean(this.compressed))
+                .append("reply", new BsonBoolean(this.reply))
+                .append("reply-to", new BsonInt64(this.replyTo))
                 .append("data", new BsonBinary(this.messageData));
+    }
+
+    protected static MessageObject receivedDataFromBson (BsonDocument document) throws ClassNotFoundException {
+        long messageId = document.getInt64("message-id").longValue();
+        Class<?> dataType = Class.forName(document.getString("data-type").getValue());
+        boolean compressed = document.getBoolean("compressed").getValue();
+        boolean reply = document.getBoolean("reply").getValue();
+        byte[] messageData = document.getBinary("data").getData();
+        long replyTo = document.getInt64("reply-to").longValue();
+        return new MessageObject(messageId, dataType, messageData, compressed, reply, replyTo);
     }
 
     @SneakyThrows
@@ -267,7 +287,7 @@ public class MessageObject {
     public boolean getAsBoolean() {
         return (boolean) getData();
     }
-    
+
     public static MessageObject from(byte msg) {
         return new MessageObject(msg);
     }
@@ -316,7 +336,7 @@ public class MessageObject {
         return new MessageObject(ja);
     }
 
-    public static MessageObject from(byte[] bytes) {
+    public MessageObject from(byte[] bytes) {
         return new MessageObject(bytes);
     }
     
