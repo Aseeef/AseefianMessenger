@@ -31,19 +31,20 @@ public abstract class AbstractMessenger implements CAMessenger {
     @Nullable
     private Thread pollingThread = null;
     @Getter
-    private final MessageReplyProcessor messageProcessor;
+    private final MessageProcessor messageProcessor;
 
     public AbstractMessenger(@Nonnull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout) {
         this.credential = credential;
         this.messengerId = UUID.randomUUID();
-        this.messageProcessor = new MessageReplyProcessor(this, listenerThreadsKeepAliveTime, replyTimeout);
+        this.messageProcessor = new MessageProcessor(this, listenerThreadsKeepAliveTime, replyTimeout);
+    }
 
+    public void initPolling() {
         Thread thread = new Thread(getPollingProtocol());
         thread.setDaemon(false);
         thread.setName(CA_POLLING_THREAD);
         this.setPollingThread(thread);
         thread.start();
-
     }
 
     public AbstractMessenger addListener(CAListener listener) {
@@ -98,9 +99,6 @@ public abstract class AbstractMessenger implements CAMessenger {
     public abstract void onRemovedChannel(String channel);
 
     public abstract CompletableFuture<MessageObject> message(String channel, MessageObject mo);
-    public abstract CompletableFuture<MessageObject> message(String channel, MessageObject mo, long replyTimeout);
-
-    protected abstract void messageReply(String channel, MessageObject mo);
 
     public abstract Runnable getPollingProtocol();
 }

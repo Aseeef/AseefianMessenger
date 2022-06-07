@@ -2,15 +2,12 @@ package dev.aseef.communicateanywhere.common.jdbc;
 
 import dev.aseef.communicateanywhere.api.MessengerType;
 import dev.aseef.communicateanywhere.common.DatabaseCredential;
-import dev.aseef.communicateanywhere.common.MessageObject;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
 
 public class PostgreMessenger extends JDBCMessenger {
 
-    public PostgreMessenger(@NotNull DatabaseCredential credential) {
-        super(MessengerType.PostgreSQL, "postgresql", "org.postgresql.Driver", credential);
+    public PostgreMessenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout) {
+        super(MessengerType.PostgreSQL, "postgresql", "org.postgresql.Driver", credential, listenerKeepAliveTime, replyTimeout);
     }
 
     @Override
@@ -23,8 +20,4 @@ public class PostgreMessenger extends JDBCMessenger {
 
     }
 
-    @Override
-    public CompletableFuture<MessageObject> message(String channel, MessageObject mo) {
-        return null;
-    }
 }

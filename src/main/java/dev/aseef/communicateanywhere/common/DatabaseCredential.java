@@ -31,8 +31,9 @@ public class DatabaseCredential {
         this.port = port;
     }
 
-    public DatabaseCredential(@Nonnull String hostName, @Nonnull String password, int port, @Nonnull String database) {
+    public DatabaseCredential(@Nonnull String hostName, @Nonnull String username, @Nonnull String password, int port, @Nonnull String database) {
         this.hostName = hostName;
+        this.username = username;
         this.password = password;
         this.port = port;
         this.database = database;

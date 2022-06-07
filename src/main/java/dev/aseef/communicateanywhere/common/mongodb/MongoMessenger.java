@@ -19,7 +19,7 @@ public class MongoMessenger extends JDBCMessenger {
 
 
     public MongoMessenger(@NotNull DatabaseCredential credential) {
-        super(MessengerType.MONGODB, "mongodb", "com.dbschema.MongoJdbcDriver", credential);
+        super(MessengerType.MONGODB, "mongodb", "com.dbschema.MongoJdbcDriver", credential, 0l, 0l);
     }
 
     @Override
