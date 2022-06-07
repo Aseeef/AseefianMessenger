@@ -1,18 +1,16 @@
 package dev.aseef.communicateanywhere.api;
 
 import dev.aseef.communicateanywhere.common.AbstractMessenger;
-import dev.aseef.communicateanywhere.common.DatabaseCredential;
 import dev.aseef.communicateanywhere.common.jdbc.H2Messenger;
-import dev.aseef.communicateanywhere.common.mongodb.MongoMessenger;
 import dev.aseef.communicateanywhere.common.jdbc.PostgreMessenger;
 import dev.aseef.communicateanywhere.common.jdbc.SQLMessenger;
+import dev.aseef.communicateanywhere.common.mongodb.MongoMessenger;
 import dev.aseef.communicateanywhere.common.redis.RedisMessenger;
 import dev.aseef.communicateanywhere.common.sockets.SocketMessenger;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
 
 public enum MessengerType {
 

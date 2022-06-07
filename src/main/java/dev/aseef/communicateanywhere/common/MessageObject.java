@@ -19,7 +19,6 @@ public class MessageObject {
     // data strings larger than this many megabytes will be compressed
     private static final int COMPRESSION_THRESHOLD = 25;
 
-    private final long messageId;
     private final Class<?> dataType;
     private byte[] messageData;
     private boolean compressed = false;
@@ -34,12 +33,11 @@ public class MessageObject {
     /**
      * The id of the message that this message is a reply to
      */
-    protected long replyTo = -1;
+    protected long replyFor = -1;
 
     @SneakyThrows
     protected MessageObject(Object msg) {
         this.dataType = msg.getClass();
-        this.messageId = System.nanoTime();
 
         if (msg instanceof Byte) {
             byte b = (byte) msg;
@@ -123,7 +121,6 @@ public class MessageObject {
     @SneakyThrows
     protected MessageObject(byte[] msg) {
         this.dataType = msg.getClass();
-        this.messageId = System.nanoTime();
         this.messageData = msg;
 
         if (messageData.length > COMPRESSION_THRESHOLD * 1000000) {
@@ -137,21 +134,16 @@ public class MessageObject {
         }
     }
 
-    public MessageObject(long messageId, Class<?> dataType, byte[] messageData, boolean compressed, boolean reply, long replyTo) {
-        this.messageId = messageId;
+    public MessageObject(Class<?> dataType, byte[] messageData, boolean compressed, boolean reply, long replyTo) {
         this.dataType = dataType;
         this.messageData = messageData;
         this.compressed = compressed;
         this.reply = reply;
-        this.replyTo = replyTo;
+        this.replyFor = replyTo;
     }
 
     public Class<?> getDataType() {
         return this.dataType;
-    }
-
-    public long getMessageId() {
-        return messageId;
     }
 
     public byte[] getMessageData() {
@@ -165,22 +157,26 @@ public class MessageObject {
     // since json is not binary safe, we use bson to transmit data in key value pairs
     public BsonDocument toBson() {
         return new BsonDocument()
-                .append("message-id", new BsonInt64(this.messageId))
                 .append("data-type", new BsonString(this.dataType.getName()))
                 .append("compressed", new BsonBoolean(this.compressed))
                 .append("reply", new BsonBoolean(this.reply))
-                .append("reply-to", new BsonInt64(this.replyTo))
+                .append("reply-for", new BsonInt64(this.replyFor))
                 .append("data", new BsonBinary(this.messageData));
     }
 
+    @Override
+    public String toString() {
+        return toBson().toString();
+    }
+
     protected static MessageObject receivedDataFromBson (BsonDocument document) throws ClassNotFoundException {
-        long messageId = document.getInt64("message-id").longValue();
         Class<?> dataType = Class.forName(document.getString("data-type").getValue());
         boolean compressed = document.getBoolean("compressed").getValue();
         boolean reply = document.getBoolean("reply").getValue();
         byte[] messageData = document.getBinary("data").getData();
-        long replyTo = document.getInt64("reply-to").longValue();
-        return new MessageObject(messageId, dataType, messageData, compressed, reply, replyTo);
+        BsonValue replyToVal = document.get("reply-for");
+        long replyTo = replyToVal.isInt64() ? replyToVal.asInt64().longValue() : replyToVal.asInt32().longValue();
+        return new MessageObject(dataType, messageData, compressed, reply, replyTo);
     }
 
     @SneakyThrows

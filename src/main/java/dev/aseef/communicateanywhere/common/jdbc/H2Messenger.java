@@ -14,8 +14,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class H2Messenger extends JDBCMessenger {
 
-    public H2Messenger(@NotNull DatabaseCredential credential) {
-        super(MessengerType.H2, "h2", "org.h2.Driver", credential);
+    public H2Messenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout) {
+        super(MessengerType.H2, "h2", "org.h2.Driver", credential, listenerKeepAliveTime, replyTimeout);
         String filePath = credential.getHostName();
         File file = new File(filePath);
         if (file.isDirectory()) {

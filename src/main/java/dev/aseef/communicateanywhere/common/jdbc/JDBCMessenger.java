@@ -8,9 +8,7 @@ import dev.aseef.communicateanywhere.common.MessageObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class JDBCMessenger extends AbstractMessenger {
@@ -21,8 +19,8 @@ public abstract class JDBCMessenger extends AbstractMessenger {
     private DatabaseCredential credential;
     private HikariDataSource dataSource;
 
-    public JDBCMessenger(MessengerType databaseType, String driverUrl, String driverClass, @NotNull DatabaseCredential credential, long listenerKeepAliveTime) {
-        super(credential, listenerKeepAliveTime);
+    public JDBCMessenger(MessengerType databaseType, String driverUrl, String driverClass, @NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout) {
+        super(credential, listenerKeepAliveTime, replyTimeout);
         if (databaseType != MessengerType.H2 &&
                 databaseType != MessengerType.MYSQL &&
                 databaseType != MessengerType.MONGODB &&
@@ -32,6 +30,13 @@ public abstract class JDBCMessenger extends AbstractMessenger {
         this.driverClass = driverClass;
         this.databaseType = databaseType;
         this.credential = credential;
+        try {
+            init();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+        initPolling();
     }
 
     public void init() throws SQLException {
@@ -47,8 +52,8 @@ public abstract class JDBCMessenger extends AbstractMessenger {
         dataSource.setMaxLifetime(1000 * 60 * 30L); // 30 min
         dataSource.setKeepaliveTime(1000 * 60 * 1L); // 1 min
         dataSource.setLeakDetectionThreshold(1000 * 60 * 20L); // 20 seconds
-        dataSource.setMinimumIdle(2); // constant pool of 1
-        dataSource.setMaximumPoolSize(2); // constant pool of 1
+        dataSource.setMinimumIdle(2); // constant pool of 2, one for sending one for receiving
+        dataSource.setMaximumPoolSize(2); // constant pool of 2, one for sending one for receiving
         dataSource.setLoginTimeout(15);
         dataSource.setLogWriter(new PrintWriter(System.out));
 
@@ -59,22 +64,26 @@ public abstract class JDBCMessenger extends AbstractMessenger {
 
     @Override
     public CompletableFuture<MessageObject> message(String channel, MessageObject mo) {
-        CompletableFuture<MessageObject> reply = new CompletableFuture<>();
         try (Connection conn = this.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO ca_messages (channel, message_blob, is_reply) VALUES (?, ?, ?);")) {
-                ps.setString(1, channel);
-                ps.setString(2, mo.toBson().toString());
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO ca_messages (sender_id, channel, message_blob) VALUES (?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, this.getMessengerId().toString());
+                ps.setString(2, channel);
+                ps.setString(3, mo.toBson().toString());
                 ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        CompletableFuture<MessageObject> reply = new CompletableFuture<>();
+                        long messageId = rs.getLong(1);
+                        // add reply to waiting
+                        this.getPendingRepliesMap().put(messageId, reply);
+                        return reply;
+                    }
+                }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            return null;
         }
-
-        // add reply to waiting
-        this.getPendingRepliesMap().put(mo.getMessageId(), reply);
-
-        return reply;
+        throw new IllegalStateException("Something went wrong whilst sending the following message through channel '" + channel + "':\n" + mo.toString());
     }
 
     @Override
@@ -90,10 +99,13 @@ public abstract class JDBCMessenger extends AbstractMessenger {
     public void createTable(Connection conn) throws SQLException {
         String query = "create table if not exists ca_messages\n" +
                 "(\n" +
+                "\tmessage_id bigint(20) auto_increment,\n" +
+                "\tsender_id varchar(36) not null,\n" +
                 "\tchannel varchar(32) not null,\n" +
                 "\tmessage_blob longblob not null,\n" +
-                "\tis_reply tinyint(1) not null," +
-                "\tcreation long not null default ROUND(UNIX_TIMESTAMP(CURTIME(4) * 1000))" +
+                "\tcreation bigint(20) not null default ROUND(UNIX_TIMESTAMP(CURTIME(4))*1000)," +
+                "\tprimary key (message_id)," +
+                "\tindex (creation)" +
                 ");";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.executeUpdate();

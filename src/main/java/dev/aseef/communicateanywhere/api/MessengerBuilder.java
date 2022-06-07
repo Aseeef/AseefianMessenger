@@ -40,7 +40,7 @@ public class MessengerBuilder {
             case PostgreSQL:
             case MONGODB:
             case REDIS:
-                return this.type.getClazz().getConstructor(DatabaseCredential.class).newInstance(credential);
+                return this.type.getClazz().getConstructor(DatabaseCredential.class, Long.TYPE, Long.TYPE).newInstance(credential, this.listenerThreadsKeepAliveTime, this.replyTimeout);
             case SOCKETS:
                 return null;
             default:
