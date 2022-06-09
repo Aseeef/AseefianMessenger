@@ -14,8 +14,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class H2Messenger extends JDBCMessenger {
 
-    public H2Messenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout) {
-        super(MessengerType.H2, "h2", "org.h2.Driver", credential, listenerKeepAliveTime, replyTimeout);
+    public H2Messenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout, double compressionThreshold, long maxPersist) {
+        super(MessengerType.H2, "h2", "org.h2.Driver", credential, listenerKeepAliveTime, replyTimeout, compressionThreshold, maxPersist);
         String filePath = credential.getHostName();
         File file = new File(filePath);
         if (file.isDirectory()) {
@@ -35,16 +35,6 @@ public class H2Messenger extends JDBCMessenger {
         } catch (SQLException ex) {
             AbstractMessenger.getLogger().error("An error occurred initialing H2Messenger", ex);
         }
-    }
-
-    @Override
-    public void onAddedChannel(String channel) {
-
-    }
-
-    @Override
-    public void onRemovedChannel(String channel) {
-
     }
 
     @Override

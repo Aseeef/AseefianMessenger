@@ -6,18 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class PostgreMessenger extends JDBCMessenger {
 
-    public PostgreMessenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout) {
-        super(MessengerType.PostgreSQL, "postgresql", "org.postgresql.Driver", credential, listenerKeepAliveTime, replyTimeout);
-    }
-
-    @Override
-    public void onAddedChannel(String channel) {
-
-    }
-
-    @Override
-    public void onRemovedChannel(String channel) {
-
+    public PostgreMessenger(@NotNull DatabaseCredential credential, long listenerKeepAliveTime, long replyTimeout, double compressionThreshold, long maxPersist) {
+        super(MessengerType.PostgreSQL, "postgresql", "org.postgresql.Driver", credential, listenerKeepAliveTime, replyTimeout, compressionThreshold, maxPersist);
     }
 
 }

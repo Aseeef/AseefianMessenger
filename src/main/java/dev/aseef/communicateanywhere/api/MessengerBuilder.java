@@ -10,6 +10,8 @@ public class MessengerBuilder {
     private final MessengerType type;
     private DatabaseCredential credential;
     private int replyTimeout = 300;
+    private double compressionThreshold = 20d;
+    private long maxPersist = 120000L;
 
     protected MessengerBuilder(MessengerType type) {
         this.type = type;
@@ -30,6 +32,16 @@ public class MessengerBuilder {
         return this;
     }
 
+    public MessengerBuilder setCompressionThreshold(double megabytes) {
+        this.compressionThreshold = megabytes;
+        return this;
+    }
+
+    public MessengerBuilder setMaxPersistenceTime(long millis) {
+        this.maxPersist = millis;
+        return this;
+    }
+
     public CAMessenger build() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         // settings validations here
         //todo
@@ -40,7 +52,7 @@ public class MessengerBuilder {
             case PostgreSQL:
             case MONGODB:
             case REDIS:
-                return this.type.getClazz().getConstructor(DatabaseCredential.class, Long.TYPE, Long.TYPE).newInstance(credential, this.listenerThreadsKeepAliveTime, this.replyTimeout);
+                return this.type.getClazz().getConstructor(DatabaseCredential.class, Long.TYPE, Long.TYPE, Double.TYPE, Long.TYPE).newInstance(credential, this.listenerThreadsKeepAliveTime, this.replyTimeout, this.compressionThreshold, this.maxPersist);
             case SOCKETS:
                 return null;
             default:

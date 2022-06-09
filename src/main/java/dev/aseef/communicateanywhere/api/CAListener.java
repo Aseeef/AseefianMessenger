@@ -11,6 +11,6 @@ public interface CAListener {
 
     String[] getListeningChannels();
 
-    void onMessage(String senderId, String channel, CAReply callbackReply, MessageObject object);
+    void onMessage(String messengerId, String channel, CAReply callbackReply, MessageObject object);
 
 }

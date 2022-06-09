@@ -10,18 +10,8 @@ import java.util.concurrent.CompletableFuture;
 public class SocketMessenger extends AbstractMessenger {
 
 
-    public SocketMessenger(@NotNull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout) {
-        super(credential, listenerThreadsKeepAliveTime, replyTimeout);
-    }
-
-    @Override
-    public void onAddedChannel(String channel) {
-
-    }
-
-    @Override
-    public void onRemovedChannel(String channel) {
-
+    public SocketMessenger(@NotNull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout, double compressionThreshold, long maxPersist) {
+        super(credential, listenerThreadsKeepAliveTime, replyTimeout, compressionThreshold, maxPersist);
     }
 
     @Override

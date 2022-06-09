@@ -9,18 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class RedisMessenger extends AbstractMessenger {
 
-    public RedisMessenger(@NotNull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout) {
-        super(credential, listenerThreadsKeepAliveTime, replyTimeout);
-    }
-
-    @Override
-    public void onAddedChannel(String channel) {
-
-    }
-
-    @Override
-    public void onRemovedChannel(String channel) {
-
+    public RedisMessenger(@NotNull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout, double compressionThreshold, long maxPersist) {
+        super(credential, listenerThreadsKeepAliveTime, replyTimeout, compressionThreshold, maxPersist);
     }
 
     @Override
