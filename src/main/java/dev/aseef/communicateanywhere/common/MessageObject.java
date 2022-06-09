@@ -17,6 +17,7 @@ import java.util.zip.GZIPOutputStream;
 public class MessageObject {
 
     // data strings larger than this many megabytes will be compressed
+    // todo: link with messenger
     private static final int COMPRESSION_THRESHOLD = 25;
 
     private final Class<?> dataType;

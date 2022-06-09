@@ -24,7 +24,7 @@ public abstract class AbstractMessenger implements CAMessenger {
     /**
      * A unique ID that is unique per JVM instance
      */
-    private final UUID messengerId;
+    private final String messengerId;
     private final List<CAListener> listeners = new LinkedList<>();
     @Getter
     private final HashMap<Long,CompletableFuture<MessageObject>> pendingRepliesMap = new HashMap<>();
@@ -32,11 +32,21 @@ public abstract class AbstractMessenger implements CAMessenger {
     private Thread pollingThread = null;
     @Getter
     private final MessageProcessor messageProcessor;
+    @Getter
+    private double compressionThreshold; //todo
 
-    public AbstractMessenger(@Nonnull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout) {
+    @Getter
+    /**
+     * The amount of time in millis a message is allowed to persist
+     */
+    private long maxPersist;
+
+    public AbstractMessenger(@Nonnull DatabaseCredential credential, long listenerThreadsKeepAliveTime, long replyTimeout, double compressionThreshold, long maxPersist) {
         this.credential = credential;
-        this.messengerId = UUID.randomUUID();
+        this.messengerId = UUID.randomUUID().toString();
+        this.compressionThreshold = compressionThreshold;
         this.messageProcessor = new MessageProcessor(this, listenerThreadsKeepAliveTime, replyTimeout);
+        this.maxPersist = maxPersist;
     }
 
     public void initPolling() {
@@ -48,27 +58,17 @@ public abstract class AbstractMessenger implements CAMessenger {
     }
 
     public AbstractMessenger addListener(CAListener listener) {
-        Set<String> currentChannels = getAllListeningChannels();
-        // if a new channel was registered as a result of this
-        // call, then call the onAddedNewChannel method.
-        // (its possible that a new listener can be registered but
-        // it's listening to the same channels as another
-        // listener)
-        for (String newChannel : listener.getListeningChannels()) {
-            if (!currentChannels.contains(newChannel))
-                onAddedChannel(newChannel);
-        }
         listeners.add(listener);
         return this;
     }
 
     public AbstractMessenger removeListener(CAListener listener) {
-        //todo
+        this.listeners.remove(listener);
         return this;
     }
 
     @Override
-    public UUID getMessengerId() {
+    public String getMessengerId() {
         return this.messengerId;
     }
 
@@ -93,10 +93,6 @@ public abstract class AbstractMessenger implements CAMessenger {
     public MessageObject bsonToMessageObject(BsonDocument bsonDocument) throws ClassNotFoundException {
         return MessageObject.receivedDataFromBson(bsonDocument);
     }
-
-    public abstract void onAddedChannel(String channel);
-
-    public abstract void onRemovedChannel(String channel);
 
     public abstract CompletableFuture<MessageObject> message(String channel, MessageObject mo);
 

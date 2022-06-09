@@ -1,12 +1,14 @@
 package dev.aseef.communicateanywhere.common;
 
 import dev.aseef.communicateanywhere.api.CAListener;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.concurrent.*;
 
 public class MessageProcessor {
 
+    @Getter
     private final ExecutorService executorService;
     private AbstractMessenger messenger;
     private long replyTimeout;
@@ -20,11 +22,7 @@ public class MessageProcessor {
         this.replyTimeout = replyTimeout;
     }
 
-    public void queueMessage(Runnable runnable) {
-        //todo async message processing?
-    }
-
-    public void processReply(long messageId, String senderId, String channel, MessageObject messageObject) {
+    public void processIncomingMessage(long messageId, String messengerId, String channel, MessageObject messageObject) {
         if (messageObject.isReply()) {
             messenger.getPendingRepliesMap().get(messageObject.getReplyFor()).complete(messageObject);
             return;
@@ -37,7 +35,7 @@ public class MessageProcessor {
                         replyData.replyFor = messageId;
                         messenger.message(channel, replyData);
                     };
-                    listener.onMessage(senderId, channel, reply, messageObject);
+                    listener.onMessage(messengerId, channel, reply, messageObject);
                 });
             }
         }

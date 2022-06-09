@@ -9,7 +9,7 @@ public interface CAMessenger {
 
     CompletableFuture<MessageObject> message(String channel, MessageObject mo);
 
-    UUID getMessengerId();
+    String getMessengerId();
 
     List<CAListener> getListeners();
 
