@@ -7,7 +7,10 @@ import dev.aseef.aseefianmessenger.common.CAReply;
 import dev.aseef.aseefianmessenger.common.DatabaseCredential;
 import dev.aseef.aseefianmessenger.common.MessageObject;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.core.util.IOUtils;
+import org.json.JSONObject;
 
+import java.io.FileReader;
 import java.util.HashMap;
 
 public class TestCases {
@@ -18,15 +21,16 @@ public class TestCases {
     public static void main(String[] args) {
 
         HashMap<Integer,Long> sentTimeMap = new HashMap<>();
+        JSONObject config = new JSONObject(IOUtils.toString(new FileReader("config.json")));
 
         CAMessenger messenger = MessengerType.MYSQL.builder()
                 .setCredentials(
                         new DatabaseCredential(
-                                "vps1.aseef.dev",
-                                "root",
-                                "***REMOVED***",
-                                3306,
-                                "gtm")
+                                config.getString("hostname"),
+                                config.getString("username"),
+                                config.getString("password"),
+                                config.getInt("port"),
+                                config.getString("database"))
                 ).setReplyTimeout(5000)
                 .setThreadKeepAliveTime(60000)
                 .build();
